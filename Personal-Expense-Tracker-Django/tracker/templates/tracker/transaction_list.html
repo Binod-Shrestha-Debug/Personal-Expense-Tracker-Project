@@ -1,0 +1,19 @@
+{% extends "tracker/base.html" %}
+{% block title %}Transactions | PennyWise{% endblock %}
+{% block page_heading %}Transactions{% endblock %}
+{% block content %}
+<div class="page-intro"><div><div class="eyebrow">YOUR MONEY ACTIVITY</div><h1>Transactions</h1><p class="muted">Review, search and manage your income and expenses.</p></div><a class="btn btn-primary rounded-pill px-4" href="{% url 'transaction_create' %}"><i class="bi bi-plus-lg me-2"></i>Add transaction</a></div>
+<div class="panel">
+<form method="get" class="filter-grid mb-4">
+<div class="filter-search"><label>Search</label><input class="form-control" name="q" value="{{ filters.q }}" placeholder="Title, note or category"></div>
+<div><label>Type</label><select class="form-select" name="type"><option value="">All types</option><option value="income" {% if filters.type == "income" %}selected{% endif %}>Income</option><option value="expense" {% if filters.type == "expense" %}selected{% endif %}>Expense</option></select></div>
+<div><label>Category</label><select class="form-select" name="category"><option value="">All categories</option>{% for category in categories %}<option value="{{ category.id }}" {% if filters.category == category.id|stringformat:"s" %}selected{% endif %}>{{ category.name }} ({{ category.get_category_type_display }})</option>{% endfor %}</select></div>
+<div><label>From</label><input class="form-control" type="date" name="start_date" value="{{ filters.start_date }}"></div>
+<div><label>To</label><input class="form-control" type="date" name="end_date" value="{{ filters.end_date }}"></div>
+<div class="filter-actions"><button class="btn btn-dark">Apply filters</button><a class="btn btn-light" href="{% url 'transaction_list' %}">Reset</a></div>
+</form>
+<div class="table-responsive"><table class="table align-middle"><thead><tr><th>TRANSACTION</th><th>CATEGORY</th><th>DATE</th><th>TYPE</th><th>AMOUNT</th><th class="text-end">ACTIONS</th></tr></thead><tbody>
+{% for item in transactions %}<tr><td><strong>{{ item.title }}</strong><small class="d-block text-muted">{{ item.get_payment_method_display }}{% if item.note %} · {{ item.note|truncatechars:38 }}{% endif %}</small></td><td>{{ item.category.name|default:"—" }}</td><td>{{ item.transaction_date|date:"M d, Y" }}</td><td><span class="type-pill {% if item.transaction_type == 'income' %}type-income{% else %}type-expense{% endif %}">{{ item.get_transaction_type_display }}</span></td><td class="fw-bold {% if item.transaction_type == 'income' %}amount-income{% else %}amount-expense{% endif %}">{% if item.transaction_type == 'income' %}+{% else %}−{% endif %} Rs. {{ item.amount|floatformat:2 }}</td><td class="text-end text-nowrap"><a class="action-btn" href="{% url 'transaction_update' item.pk %}" title="Edit"><i class="bi bi-pencil"></i></a><a class="action-btn delete" href="{% url 'transaction_delete' item.pk %}" title="Delete"><i class="bi bi-trash"></i></a></td></tr>
+{% empty %}<tr><td colspan="6"><div class="empty-state"><i class="bi bi-search"></i><h3>No transactions found</h3><p>Try changing your filters or add a new transaction.</p></div></td></tr>{% endfor %}
+</tbody></table></div><div class="table-foot">{{ transactions|length }} transaction{{ transactions|length|pluralize }} found</div></div>
+{% endblock %}

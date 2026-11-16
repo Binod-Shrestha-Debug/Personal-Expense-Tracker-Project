@@ -1,0 +1,31 @@
+{% extends "tracker/base.html" %}
+{% block title %}Dashboard | PennyWise{% endblock %}
+{% block page_heading %}Dashboard{% endblock %}
+{% block content %}
+<div class="welcome-line"><div><div class="eyebrow">YOUR FINANCIAL SNAPSHOT</div><h1>Good to see you, {{ user.username }}.</h1><p class="muted">Here is how your money is looking for {{ month_name }}.</p></div><a class="btn btn-primary rounded-pill px-4" href="{% url 'transaction_create' %}"><i class="bi bi-plus-lg me-2"></i>Add transaction</a></div>
+<div class="row g-3 summary-row">
+  <div class="col-md-4"><div class="summary-card"><div class="summary-top"><span>Income this month</span><span class="summary-icon income-icon"><i class="bi bi-arrow-down-left"></i></span></div><div class="summary-value">Rs. {{ income|floatformat:2 }}</div><div class="summary-note">Money received</div></div></div>
+  <div class="col-md-4"><div class="summary-card"><div class="summary-top"><span>Expenses this month</span><span class="summary-icon expense-icon"><i class="bi bi-arrow-up-right"></i></span></div><div class="summary-value">Rs. {{ expenses|floatformat:2 }}</div><div class="summary-note">Money spent</div></div></div>
+  <div class="col-md-4"><div class="summary-card"><div class="summary-top"><span>Net balance this month</span><span class="summary-icon balance-icon"><i class="bi bi-wallet2"></i></span></div><div class="summary-value">Rs. {{ balance|floatformat:2 }}</div><div class="summary-note">Income minus expenses</div></div></div>
+</div>
+<div class="row g-3 mt-1">
+  <div class="col-lg-8"><div class="panel chart-panel"><div class="panel-head"><div><h2>Income vs expenses</h2><p>Your activity over the last six months</p></div><span class="mini-badge">6 months</span></div><div class="chart-wrap"><canvas id="trendChart"></canvas></div></div></div>
+  <div class="col-lg-4"><div class="panel chart-panel h-100"><div class="panel-head"><div><h2>Spending by category</h2><p>This month's expense mix</p></div></div><div class="donut-wrap"><canvas id="categoryChart"></canvas></div>{% if not category_labels %}<div class="chart-empty">Add categorized expenses to see your breakdown.</div>{% endif %}</div></div>
+</div>
+<div class="panel mt-3"><div class="panel-head"><div><h2>Recent transactions</h2><p>Your latest income and expenses</p></div><a class="text-link" href="{% url 'transaction_list' %}">See all <i class="bi bi-arrow-right"></i></a></div>
+<div class="table-responsive"><table class="table align-middle"><thead><tr><th>TRANSACTION</th><th>CATEGORY</th><th>DATE</th><th>TYPE</th><th class="text-end">AMOUNT</th></tr></thead><tbody>
+{% for item in recent_transactions %}<tr><td><div class="transaction-name"><span class="transaction-symbol {% if item.transaction_type == 'income' %}symbol-income{% else %}symbol-expense{% endif %}"><i class="bi {% if item.transaction_type == 'income' %}bi-arrow-down-left{% else %}bi-arrow-up-right{% endif %}"></i></span><div><strong>{{ item.title }}</strong><small>{{ item.get_payment_method_display }}</small></div></div></td><td>{% if item.category %}{{ item.category.name }}{% else %}<span class="text-muted">Uncategorized</span>{% endif %}</td><td>{{ item.transaction_date|date:"M d, Y" }}</td><td><span class="type-pill {% if item.transaction_type == 'income' %}type-income{% else %}type-expense{% endif %}">{{ item.get_transaction_type_display }}</span></td><td class="text-end fw-bold {% if item.transaction_type == 'income' %}amount-income{% else %}amount-expense{% endif %}">{% if item.transaction_type == 'income' %}+{% else %}−{% endif %} Rs. {{ item.amount|floatformat:2 }}</td></tr>
+{% empty %}<tr><td colspan="5"><div class="empty-state"><i class="bi bi-receipt"></i><h3>No transactions yet</h3><p>Add your first transaction to start tracking your money.</p><a class="btn btn-primary" href="{% url 'transaction_create' %}">Add transaction</a></div></td></tr>{% endfor %}
+</tbody></table></div></div>
+{% endblock %}
+{% block scripts %}
+{{ chart_labels|json_script:"trend-labels" }}{{ income_data|json_script:"income-data" }}{{ expense_data|json_script:"expense-data" }}
+{{ category_labels|json_script:"category-labels" }}{{ category_values|json_script:"category-values" }}{{ category_colors|json_script:"category-colors" }}
+<script>
+const readJSON=id=>JSON.parse(document.getElementById(id).textContent);
+const labels=readJSON("trend-labels");
+new Chart(document.getElementById("trendChart"),{type:"bar",data:{labels,datasets:[{label:"Income",data:readJSON("income-data"),backgroundColor:"#38b889",borderRadius:6},{label:"Expenses",data:readJSON("expense-data"),backgroundColor:"#8178e8",borderRadius:6}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:"bottom",labels:{usePointStyle:true,boxWidth:7}}},scales:{x:{grid:{display:false}},y:{beginAtZero:true,grid:{color:"#f0f1f6"}}}}});
+const cLabels=readJSON("category-labels");
+if(cLabels.length){new Chart(document.getElementById("categoryChart"),{type:"doughnut",data:{labels:cLabels,datasets:[{data:readJSON("category-values"),backgroundColor:readJSON("category-colors"),borderWidth:3,borderColor:"#fff"}]},options:{responsive:true,maintainAspectRatio:false,cutout:"68%",plugins:{legend:{position:"bottom",labels:{usePointStyle:true,boxWidth:7,padding:14}}}}});}
+</script>
+{% endblock %}

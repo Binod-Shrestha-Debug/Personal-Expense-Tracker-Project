@@ -1,0 +1,7 @@
+{% extends "tracker/base.html" %}
+{% block title %}Set Budget | PennyWise{% endblock %}
+{% block page_heading %}Set budget{% endblock %}
+{% block content %}
+<div class="page-intro"><div><div class="eyebrow">MONTHLY PLANNING</div><h1>Set a budget</h1><p class="muted">Choose an expense category and set its monthly limit.</p></div></div>
+<div class="form-panel narrow"><form method="post">{% csrf_token %}{% if form.non_field_errors %}<div class="alert alert-danger">{{ form.non_field_errors }}</div>{% endif %}{% for field in form %}<div class="mb-3"><label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>{{ field }}{% for error in field.errors %}<div class="field-error">{{ error }}</div>{% endfor %}</div>{% endfor %}<div class="form-actions"><a class="btn btn-light px-4" href="{% url 'budget_list' %}">Cancel</a><button class="btn btn-primary px-4">Save budget</button></div></form></div>
+{% endblock %}

@@ -1,0 +1,7 @@
+{% extends "tracker/base.html" %}
+{% block title %}Categories | PennyWise{% endblock %}
+{% block page_heading %}Categories{% endblock %}
+{% block content %}
+<div class="page-intro"><div><div class="eyebrow">ORGANIZE YOUR ACTIVITY</div><h1>Categories</h1><p class="muted">Create categories that make your transactions easier to understand.</p></div><a class="btn btn-primary rounded-pill px-4" href="{% url 'category_create' %}"><i class="bi bi-plus-lg me-2"></i>New category</a></div>
+<div class="row g-3">{% for category in categories %}<div class="col-md-6 col-xl-4"><div class="category-card"><span class="category-color" style="background:{{ category.color }}"></span><div class="flex-grow-1"><h3>{{ category.name }}</h3><span class="type-pill {% if category.category_type == 'income' %}type-income{% else %}type-expense{% endif %}">{{ category.get_category_type_display }}</span></div><form method="post" action="{% url 'category_delete' category.pk %}" onsubmit="return confirm('Delete this category? Existing transactions will remain.');">{% csrf_token %}<button class="action-btn delete"><i class="bi bi-trash"></i></button></form></div></div>{% empty %}<div class="col-12"><div class="panel empty-state"><i class="bi bi-tags"></i><h3>No categories yet</h3><p>Add a category to organize transactions.</p></div></div>{% endfor %}</div>
+{% endblock %}
